@@ -66,8 +66,13 @@ nav{display:flex;gap:6px;margin-bottom:8px}nav button{flex:1;padding:9px 4px;fon
 #spVi{font-size:20px;color:var(--ink);margin:4px 0 10px}
 #spTarget .py{font-size:26px}#spTarget .zh{font-size:56px;line-height:1.2}
 #sp .row.c button:not(.mic){min-height:52px;font-size:18px;padding:8px 16px}
-.mic{width:88px;height:88px;border-radius:50%;font-size:38px;padding:0}.mic.rec{background:var(--bad);border-color:var(--bad);color:#fff;animation:pulse 1s infinite}
-@keyframes pulse{50%{transform:scale(1.08)}}
+.mic{width:88px;height:88px;border-radius:50%;font-size:38px;padding:0}.mic{position:relative;transition:background .2s,box-shadow .2s}
+.mic.ready{animation:ringB 1.6s ease-out infinite}
+.mic.rec{background:var(--bad);border-color:var(--bad);color:#fff;animation:ringR 1.1s ease-out infinite}
+.mic.busy{opacity:.55;animation:none}
+@keyframes ringB{0%{box-shadow:0 0 0 0 rgba(59,125,196,.55)}100%{box-shadow:0 0 0 24px rgba(59,125,196,0)}}
+@keyframes ringR{0%{box-shadow:0 0 0 0 rgba(214,69,69,.6)}100%{box-shadow:0 0 0 26px rgba(214,69,69,0)}}
+#micHint{min-height:24px;font-weight:600;margin-top:2px}
 #spPos{font-size:17px}#spRes{margin-top:8px}#spList{display:none}
 .chip{min-width:38px;padding:6px 10px}.chip.ok{background:var(--ok-bg)}.chip.low{background:var(--bad-bg)}.chip.cur{outline:2px solid var(--pri)}
 .ch{display:inline-block;margin:0 2px;text-align:center}.ch .c{font-size:34px;line-height:1.1}.ch .p{font-size:14px;font-weight:600}
@@ -143,11 +148,12 @@ nav{display:flex;gap:6px;margin-bottom:8px}nav button{flex:1;padding:9px 4px;fon
   <div class="main"><div class="card" style="text-align:center">
    <div class="mut" id="spStep"></div><div class="bar" style="margin-bottom:10px"><i id="spBar"></i></div><div id="spTarget" class="zh" style="margin:6px 0"></div><div class="mut" id="spVi"></div>
    <div class="row c"><button id="spListen">🔊 Nghe lại</button><button class="mic pri" id="mic">🎤</button><button id="spSkip">Câu tiếp →</button></div>
+   <div id="micHint" class="mut"></div>
    <div class="row c"><button id="spAll">🔊 Cả đoạn</button><button id="spSlow">🐢 Nghe chậm</button><button id="spMine" disabled>▶ Nghe giọng tôi</button></div>
    <div id="spRes"></div></div>
    <details class="panel"><summary>⚙ Tuỳ chọn &amp; cách tính điểm</summary>
     <p class="mut">Đến bài số <input type="number" id="spJump" min="1" max="47" style="width:70px"> <button id="spJumpGo">Đi</button></p>
-    <div class="row"><label><input type="checkbox" id="spAuto" checked> Tự bật mic sau khi nghe</label><label><input type="checkbox" id="spGo" checked> Tự sang câu tiếp khi đạt</label><label><input type="checkbox" id="spHide"> Ẩn Hán tự</label></div>
+    <div class="row"><label><input type="checkbox" id="spAuto"> Tự bật mic sau khi nghe</label><label><input type="checkbox" id="spGo"> Tự sang câu tiếp khi đạt</label><label><input type="checkbox" id="spHide"> Ẩn Hán tự</label></div>
     <p class="mut"><small>Phím: Space bật/tắt mic · Enter hoặc → câu tiếp · ← câu trước · R nghe lại.</small></p>
     <div class="note"><b>Cách tính “Độ khớp”:</b> trình duyệt chuyển giọng bạn thành chữ Hán (lấy kết quả khớp nhất trong tối đa 5 phương án). Độ khớp = số chữ nghe đúng, đúng thứ tự ÷ tổng số chữ của câu. Đạt khi ≥ 80% (câu ngắn ≤ 3 chữ cần 100%).<br><b>Giới hạn:</b> máy nhận dạng thường tự “sửa” theo ngữ cảnh nên <b>không chấm trực tiếp thanh điệu</b>; 100% nghĩa là máy hiểu bạn, chưa chắc thanh điệu chuẩn. Hãy dùng dòng thanh điệu màu và nút “Nghe giọng tôi” để tự đối chiếu.</div>
    </details>
@@ -325,15 +331,18 @@ function spDraw(){const s=S[sp.si],t=sp.hl>=0?s.turns[sp.hl]:spCur(),pos=sp.hl>=
  spSync(s,pos,sp.hl>=0?s.turns.length:sp.ti+1);
  $('#spVi').textContent=(t.sp==='*'?'':'Người '+t.sp+' · ')+t.vi;
  $('#spTarget').innerHTML=hide?'<span class="mid">＊＊＊</span>':`<div class="py">${t.py}</div><div class="zh">${t.zh}</div>`;$('#spRes').innerHTML=''}
+/* trạng thái mic: idle (đang nghe máy đọc) · ready (chờ bạn bấm) · rec (đang thu) · busy (đang chấm) */
+function micSet(s){const m=$('#mic');m.classList.toggle('ready',s==='ready');m.classList.toggle('rec',s==='rec');m.classList.toggle('busy',s==='busy');m.textContent=s==='rec'?'⏹':'🎤';
+ $('#micHint').textContent={ready:'👉 Bấm 🎤 (hoặc phím Space) rồi đọc theo',rec:'Đang nghe… đọc xong bấm ⏹ để dừng',busy:'Đang chấm điểm…',idle:''}[s]}
 function spHalt(){sp.run++;stopSpeak();
  if(sp.rec){const r=sp.rec;sp.rec=null;try{r.abort()}catch(e){}}   /* abort: bỏ kết quả cũ, không chấm nhầm sang câu mới */
- $('#mic').classList.remove('rec');recStop()}
+ micSet('idle');recStop()}
 async function spPlay(replay){spHalt();const my=sp.run,T=S[sp.si].turns;sp.hl=-1;spDraw();if(replay!==true){$('#spMine').disabled=true;sp.tries=0}
  if(replay===true){$('#spStep').textContent='🔊 Nghe lại câu này…';await speak(spCur().zh)}
  else if(sp.ti===0&&sp.heard!==sp.si){sp.heard=sp.si;
   for(let k=0;k<T.length;k++){sp.hl=k;spDraw();$('#spStep').textContent=`🔊 Nghe cả đoạn (${k+1}/${T.length})…`;await speak(T[k].zh);if(my!==sp.run){sp.heard=-1;sp.hl=-1;return}}
   sp.hl=-1;spDraw();if(T.length>1){$('#spStep').textContent='✅ Đã nghe xong!';$('#spRes').innerHTML=`<p class="fb ok"><b>Đã nghe xong ${T.length} câu.</b><br>Bây giờ bạn đọc lần lượt từng câu, bắt đầu từ câu 1…</p>`;await new Promise(r=>setTimeout(r,3000))}}
- if(my!==sp.run)return;$('#spStep').textContent=T.length>1?`🎤 Đến lượt bạn đọc: câu ${sp.ti+1}/${T.length}`:'🎤 Đến lượt bạn đọc theo';if($('#spAuto').checked)spListen()}
+ if(my!==sp.run)return;$('#spStep').textContent=T.length>1?`🎤 Đến lượt bạn đọc: câu ${sp.ti+1}/${T.length}`:'🎤 Đến lượt bạn đọc theo';if($('#spAuto').checked)spListen();else micSet('ready')}
 function spSet(si,ti){sp.si=(si+S.length)%S.length;sp.ti=ti;store.si=sp.si;save();spPlay()}
 function spNext(){sp.ti+1>=S[sp.si].turns.length?spSummary():spSet(sp.si,sp.ti+1)}
 function spSummary(){spHalt();const my=sp.run,T=S[sp.si].turns,sc=T.map((_,i)=>store.best[spKey(sp.si,i)]),a=avg(sc.filter(x=>x!=null)),auto=a>=80&&$('#spGo').checked;
@@ -362,15 +371,15 @@ function micMsg(c){const perm='🎤 Chưa được cấp quyền micro.<br><smal
  return `<p class="fb no">${m[c]||'Lỗi nhận giọng nói: '+c}</p>`}
 function spListen(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition,res=$('#spRes');
  if(!SR){res.innerHTML='<p class="fb no">Trình duyệt chưa hỗ trợ nhận giọng nói. Hãy mở bằng Chrome, Edge hoặc Safari.</p>';return}
- if(sp.rec)return;const my=sp.run,r=new SR(),mic=$('#mic');sp.rec=r;r.lang='zh-CN';r.maxAlternatives=5;r.interimResults=false;
- mic.classList.add('rec');res.innerHTML='<p class="mut">Đang nghe… hãy đọc theo</p>';
+ if(sp.rec)return;const my=sp.run,r=new SR();sp.rec=r;r.lang='zh-CN';r.maxAlternatives=5;r.interimResults=false;
+ micSet('rec');res.innerHTML='<p class="mut">Đang nghe… hãy đọc theo</p>';
  r.onresult=e=>my===sp.run&&spScore([...e.results[0]].map(a=>({text:a.transcript,conf:a.confidence})),my);
- r.onerror=e=>{if(my!==sp.run)return;res.innerHTML=micMsg(e.error)};
- r.onend=()=>{if(sp.rec!==r)return;sp.rec=null;mic.classList.remove('rec');recStop()};try{r.start();recStart()}catch(e){sp.rec=null;mic.classList.remove('rec');recStop()}}
+ r.onerror=e=>{if(my!==sp.run)return;res.innerHTML=micMsg(e.error);micSet('ready')};
+ r.onend=()=>{if(sp.rec!==r)return;sp.rec=null;recStop();micSet('ready')};try{r.start();recStart()}catch(e){sp.rec=null;recStop();micSet('ready')}}
 function spScore(alts,my){const t=spCur(),tg=[...cn(t.zh)];let best=null,heard=alts[0];
  alts.forEach(a=>{const l=lcs(tg,[...cn(a.text)]);if(!best||l.n>best.n){best=l;heard=a}});
  const pct=Math.round(best.n/tg.length*100),need=THRESH(t),ok=pct>=need,go=ok&&$('#spGo').checked,k=spKey(sp.si,sp.ti);
- store.best[k]=Math.max(store.best[k]||0,pct);store.last[k]=pct;save();sp.tries=ok?0:sp.tries+1;
+ store.best[k]=Math.max(store.best[k]||0,pct);store.last[k]=pct;save();sp.tries=ok?0:sp.tries+1;micSet('ready');
  const syl=syllables(t),miss=[...new Set(tg.filter((c,i)=>!best.hit[i]))];
  const rel=miss.map(c=>V.find(v=>v.zh.includes(c))).filter((v,i,a)=>v&&a.indexOf(v)===i).slice(0,4).map(v=>v.zh+' '+v.py).join(' · ');
  const chars=tg.map((c,i)=>`<span class="ch ${best.hit[i]?'g':'r'}"><div class="c zh">${c}</div>${syl?`<div class="p t${syl[i].t}">${syl[i].p} ${ARROW[syl[i].t]}</div>`:''}</span>`).join('');
@@ -384,7 +393,7 @@ function spScore(alts,my){const t=spCur(),tg=[...cn(t.zh)];let best=null,heard=a
   <small class="mut">Cao nhất: ${store.best[k]}% · Lần này: ${pct}%</small>`;
  if(go)setTimeout(()=>{if(my===sp.run)spNext()},1800)}
 $('#spPrev').onclick=()=>spSet(sp.si-1,0);$('#spNextSet').onclick=()=>spSet(sp.si+1,0);$('#spSkip').onclick=spNext;
-$('#spListen').onclick=()=>spPlay(true);$('#mic').onclick=()=>{if(sp.rec){sp.rec.stop();return}spHalt();spListen()};
+$('#spListen').onclick=()=>spPlay(true);$('#mic').onclick=()=>{if(sp.rec){micSet('busy');sp.rec.stop();return}spHalt();spListen()};
 $('#spHide').onchange=spDraw;$('#spAll').onclick=()=>{sp.heard=-1;spSet(sp.si,0)};
 $('#spChips').onclick=e=>{const b=e.target.closest('button');if(b)spSet(sp.si,+b.dataset.k)};
 $('#spJumpGo').onclick=()=>{const n=+$('#spJump').value;if(n>=1&&n<=S.length)spSet(n-1,0)};
