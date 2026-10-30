@@ -75,6 +75,8 @@ body.testing main>header,body.testing main>nav,body.testing #notice{display:none
 #tIn.err{border-color:var(--bad);animation:shake .3s}@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 .wrow{display:flex;gap:10px;margin-top:8px}.wrow input{flex:1;min-width:0}.wrow button{min-width:110px;font-size:18px}
 .hint{font-size:var(--fs-s);color:var(--mut);margin:8px 0 0}.hint.err{color:var(--bad);font-weight:600}
+.tclock{display:inline-block;font-weight:700;font-variant-numeric:tabular-nums;margin-right:10px;padding:2px 12px;border-radius:99px;background:var(--soft);color:var(--pri-d)}
+.tclock.warn{background:var(--bad);color:#fff;animation:tpulse 1s ease-in-out infinite}@keyframes tpulse{50%{opacity:.6}}
 #tN{width:84px;text-align:center;font-weight:700;cursor:text}
 #tBody{text-align:left}#tBody .py{margin-top:2px}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}.grid2 .opt{margin:0}
@@ -196,6 +198,7 @@ body.testing main>header,body.testing main>nav,body.testing #notice{display:none
   <div class="mut">Ôn tập</div><div class="mid" style="margin-bottom:6px">Thiết lập bài kiểm tra</div>
   <div class="setrow"><label for="tScope">Phạm vi từ</label><select id="tScope"></select></div>
   <div class="setrow"><label for="tN">Câu hỏi <small>(tối đa <span id="tMax">0</span>)</small></label><input type="number" id="tN" min="1" value="20" inputmode="numeric"></div>
+  <div class="setrow"><label for="tTime">Giới hạn thời gian<small id="tTimeInfo"></small></label><select id="tTime"><option value="0">Không giới hạn</option><option value="15">15 giây/câu</option><option value="30" selected>30 giây/câu</option><option value="45">45 giây/câu</option><option value="60">1 phút/câu</option></select></div>
   <div class="setrow"><label for="tAns">Trả lời bằng</label><select id="tAns"><option value="both">Cả hai</option><option value="zh">Hán tự</option><option value="vi">Tiếng Việt</option></select></div>
   <div class="setrow"><label for="tTF">Đúng/Sai</label><label class="sw"><input type="checkbox" id="tTF"><i></i></label></div>
   <div class="setrow"><label for="tMC">Trắc nghiệm</label><label class="sw"><input type="checkbox" id="tMC" checked><i></i></label></div>
@@ -208,7 +211,7 @@ body.testing main>header,body.testing main>nav,body.testing #notice{display:none
  </div>
  <div id="tRun" class="hide">
   <div class="bar thick"><i id="tBar"></i></div>
-  <div class="card" style="margin-top:8px"><div class="row" style="justify-content:space-between;margin-top:0"><span class="mut"><b id="tLabel"></b> <button id="tSay" aria-label="Nghe" style="padding:2px 8px">🔊</button></span><span class="mut" id="tCnt"></span></div><div id="tBody"></div></div>
+  <div class="card" style="margin-top:8px"><div class="row" style="justify-content:space-between;margin-top:0"><span class="mut"><b id="tLabel"></b> <button id="tSay" aria-label="Nghe" style="padding:2px 8px">🔊</button></span><span class="mut"><span id="tClock" class="tclock hide" role="timer"></span><span id="tCnt"></span></span></div><div id="tBody"></div></div>
   <div class="row c"><button id="tPrev">← Câu trước</button><button id="tDk">Bạn không biết?</button><button id="tQuit">Thoát &amp; nộp bài</button></div>
   <p class="mut" id="tQuitMsg" style="text-align:center;min-height:22px;margin:4px 0"></p>
  </div>
@@ -238,8 +241,8 @@ body.testing main>header,body.testing main>nav,body.testing #notice{display:none
    <div id="spRes"></div></div>
    <details class="panel"><summary>⚙ Tuỳ chọn &amp; cách tính điểm</summary>
     <p class="mut">Đến bài số <input type="number" id="spJump" min="1" max="47" style="width:70px"> <button id="spJumpGo">Đi</button></p>
-    <div class="row"><label><input type="checkbox" id="spAuto"> Tự bật mic sau khi nghe</label><label><input type="checkbox" id="spGo"> Tự sang câu tiếp khi đạt</label><label><input type="checkbox" id="spHide"> Ẩn Hán tự</label></div>
-    <p class="mut"><small>Phím: Space bật/tắt mic · Enter hoặc → câu tiếp · ← câu trước · R nghe lại.</small></p>
+    <div class="row"><label><input type="checkbox" id="spGo"> Tự sang câu tiếp khi đạt</label><label><input type="checkbox" id="spHide"> Ẩn Hán tự</label></div>
+    <p class="mut"><small>Phím: giữ Space để nói, thả ra để dừng · Enter hoặc → câu tiếp · ← câu trước · R nghe lại.</small></p>
     <div class="note"><b>Cách tính “Độ khớp”:</b> trình duyệt chuyển giọng bạn thành chữ Hán (lấy kết quả khớp nhất trong tối đa 5 phương án). Độ khớp = số chữ nghe đúng, đúng thứ tự ÷ tổng số chữ của câu. Đạt khi ≥ 80% (câu ngắn ≤ 3 chữ cần 100%).<br><b>Giới hạn:</b> máy nhận dạng thường tự “sửa” theo ngữ cảnh nên <b>không chấm trực tiếp thanh điệu</b>; 100% nghĩa là máy hiểu bạn, chưa chắc thanh điệu chuẩn. Hãy dùng dòng thanh điệu màu và nút “Nghe giọng tôi” để tự đối chiếu.</div>
    </details>
   </div>
@@ -318,13 +321,30 @@ const Srs={
 /* thống kê lưu tạm, chỉ tính lại khi tiến độ đổi */
 const Stats={c:null,dirty(){this.c=null},get(){if(!this.c){const n=[0,0,0,0];V.forEach(v=>n[lvOf(v)]++);this.c={n,dn:V.filter(Srs.isDue).length}}return this.c}};
 /* ---------- 3. Speech (TTS) ---------- */
-let voice=null;const pickVoice=()=>{const v=speechSynthesis.getVoices();voice=v.find(x=>/zh[-_]CN/i.test(x.lang))||v.find(x=>/^zh/i.test(x.lang))||null};
-if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
-setTimeout(()=>{if(!('speechSynthesis' in window))notice('🔇 Trình duyệt không hỗ trợ đọc mẫu — hãy dùng Chrome, Edge hoặc Safari.');
- else if(speechSynthesis.getVoices().length&&!voice)notice('🔇 Thiết bị chưa có giọng đọc tiếng Trung nên âm thanh có thể sai hoặc im lặng. Hãy cài giọng “中文/Chinese” trong cài đặt giọng nói của hệ điều hành.')},1500);
-const stopSpeak=()=>{if('speechSynthesis' in window)speechSynthesis.cancel()};
-function speak(t,rt){return new Promise(r=>{if(!('speechSynthesis' in window)){toast('🔇 Trình duyệt này không hỗ trợ đọc mẫu. Hãy dùng Chrome, Edge hoặc Safari.',60000);return r()}speechSynthesis.cancel();
- const u=new SpeechSynthesisUtterance(clean(t));u.lang='zh-CN';if(voice)u.voice=voice;u.rate=rt||+$('#rate').value;u.onend=()=>r();u.onerror=e=>{if(e.error&&!/canceled|interrupted/.test(e.error))toast('🔇 Không phát được âm thanh ('+e.error+'). Kiểm tra âm lượng và giọng đọc tiếng Trung của thiết bị.',60000);r()};speechSynthesis.speak(u)})}
+/* nhận diện nền tảng: iPhone/iPad (kể cả iPadOS giả Mac) · Android · app nhúng (Zalo, Facebook, Messenger…) */
+const UA=navigator.userAgent,isIOS=/iP(hone|ad|od)/.test(UA)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),isAndroid=/Android/i.test(UA),isMobile=isIOS||isAndroid,inApp=/FBAN|FBAV|FB_IAB|Zalo|Instagram|Line\/|MicroMessenger|Messenger/i.test(UA);
+let voice=null;
+/* chọn giọng tiếng Trung phổ thông: iOS (zh-CN) · Android/Google (zh-CN, zh_CN, cmn-Hans-CN) · ưu tiên giọng cài sẵn trên máy, tránh Quảng Đông/Đài Loan nếu có giọng đại lục */
+const pickVoice=()=>{if(!('speechSynthesis' in window))return;const vs=speechSynthesis.getVoices();
+ const sc=v=>{const l=String(v.lang).replace('_','-');if(!/^(zh|cmn)/i.test(l))return-1;
+  return(/(CN|Hans)/i.test(l)?4:0)+(/(HK|TW|yue|Hant)/i.test(l)?-3:0)+(v.localService?1:0)+(/Siri|Premium|Enhanced|Xiaoxiao|Huihui|Tingting|Ting-Ting/i.test(v.name)?1:0)};
+ const best=vs.map(v=>[sc(v),v]).filter(x=>x[0]>=0).sort((a,b)=>b[0]-a[0])[0];voice=best?best[1]:null};
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;
+ /* iOS/Android chỉ cho phát tiếng sau lần chạm đầu tiên: “mở khoá” bằng một câu im lặng */
+ ['touchend','click','keydown'].forEach(ev=>window.addEventListener(ev,function f(){window.removeEventListener(ev,f,true);
+  try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}},{capture:true,once:true}))}
+setTimeout(()=>{pickVoice();if(!('speechSynthesis' in window))notice('🔇 Trình duyệt không hỗ trợ đọc mẫu — hãy dùng '+(isIOS?'Safari':'Chrome')+'.'+(inApp?' Bạn đang mở trong ứng dụng khác, hãy chọn “Mở bằng trình duyệt”.':''));
+ else if(!voice)notice('🔇 Thiết bị chưa có giọng đọc tiếng Trung nên âm thanh có thể sai hoặc im lặng. '+(isIOS?'iPhone: Cài đặt → Trợ năng → Nội dung đã đọc → Giọng nói → Tiếng Trung → tải một giọng.':isAndroid?'Android: Cài đặt → Quản lý chung → Chuyển văn bản thành giọng nói → Dịch vụ giọng nói của Google → Cài đặt giọng nói → tải tiếng Trung (Phổ thông).':'Hãy cài giọng “中文/Chinese” trong cài đặt giọng nói của hệ điều hành.'))},2000);
+const stopSpeak=()=>{if('speechSynthesis' in window){speakTok++;speechSynthesis.cancel()}};
+/* phát âm: iOS/Android cần chờ một nhịp sau cancel(), một số máy Android không bắn onend → có đồng hồ bảo vệ để không bị treo */
+let speakTok=0;
+function speak(t,rt){return new Promise(r=>{if(!('speechSynthesis' in window)){toast('🔇 Trình duyệt này không hỗ trợ đọc mẫu. Hãy dùng '+(isIOS?'Safari':'Chrome')+'.',60000);return r()}
+ const synth=speechSynthesis,my=++speakTok,txt=clean(t),rate=rt||+$('#rate').value||1;synth.cancel();if(!voice)pickVoice();
+ const u=new SpeechSynthesisUtterance(txt);u.lang=voice&&voice.lang?String(voice.lang).replace('_','-'):'zh-CN';if(voice)u.voice=voice;u.rate=rate;
+ let done=false,guard;const fin=()=>{if(done)return;done=true;clearTimeout(guard);r()};
+ u.onend=fin;u.onerror=e=>{if(e.error&&!/canceled|interrupted/.test(e.error))toast('🔇 Không phát được âm thanh ('+e.error+'). Kiểm tra âm lượng, chế độ im lặng của máy và giọng đọc tiếng Trung.',60000);fin()};
+ guard=setTimeout(()=>{if(my===speakTok)synth.cancel();fin()},Math.max(4000,txt.length*900/rate+3000));
+ setTimeout(()=>{if(my!==speakTok)return fin();if(synth.paused)synth.resume();synth.speak(u)},80)})}
 
 /* ---------- 4. Tabs ---------- */
 const TABS=['fc','qz','rv','sp'];
@@ -427,7 +447,7 @@ function spDraw(){const s=S[sp.si],t=sp.hl>=0?s.turns[sp.hl]:spCur(),pos=sp.hl>=
  $('#spTarget').innerHTML=hide?'<span class="mid">＊＊＊</span>':`<div class="py">${t.py}</div><div class="zh">${t.zh}</div>`;$('#spRes').innerHTML=''}
 /* trạng thái mic: idle (đang nghe máy đọc) · ready (chờ bạn bấm) · rec (đang thu) · busy (đang chấm) */
 function micSet(s){const m=$('#mic');m.classList.toggle('ready',s==='ready');m.classList.toggle('rec',s==='rec');m.classList.toggle('busy',s==='busy');m.textContent=s==='rec'?'⏹':'🎤';m.setAttribute('aria-label',{rec:'Dừng ghi âm',busy:'Đang chấm điểm',ready:'Bấm để nói',idle:'Micro'}[s]);
- $('#micHint').textContent={ready:'👉 Bấm 🎤 (hoặc phím Space) rồi đọc theo',rec:'Đang nghe… đọc xong bấm ⏹ để dừng',busy:'Đang chấm điểm…',idle:''}[s]}
+ $('#micHint').textContent={ready:isMobile?'👉 Bấm 🎤 rồi đọc theo':'👉 Bấm 🎤 hoặc giữ phím Space rồi đọc theo',rec:isMobile?'Đang nghe… đọc xong bấm ⏹':'Đang nghe… đọc xong bấm ⏹ (hoặc thả phím Space)',busy:'Đang chấm điểm…',idle:''}[s]}
 function spHalt(){sp.run++;stopSpeak();
  if(sp.rec){const r=sp.rec;sp.rec=null;try{r.abort()}catch(e){}}   /* abort: bỏ kết quả cũ, không chấm nhầm sang câu mới */
  micSet('idle');recStop()}
@@ -436,7 +456,7 @@ async function spPlay(replay){spHalt();const my=sp.run,T=S[sp.si].turns;sp.hl=-1
  else if(sp.ti===0&&sp.heard!==sp.si){sp.heard=sp.si;
   for(let k=0;k<T.length;k++){sp.hl=k;spDraw();$('#spStep').textContent=`🔊 Nghe cả đoạn (${k+1}/${T.length})…`;await speak(T[k].zh);if(my!==sp.run){sp.heard=-1;sp.hl=-1;return}}
   sp.hl=-1;spDraw();if(T.length>1){$('#spStep').textContent='✅ Đã nghe xong!';$('#spRes').innerHTML=`<p class="fb ok"><b>Đã nghe xong ${T.length} câu.</b><br>Bây giờ bạn đọc lần lượt từng câu, bắt đầu từ câu 1…</p>`;await new Promise(r=>setTimeout(r,3000))}}
- if(my!==sp.run)return;$('#spStep').textContent=T.length>1?`🎤 Đến lượt bạn đọc: câu ${sp.ti+1}/${T.length}`:'🎤 Đến lượt bạn đọc theo';if($('#spAuto').checked)spListen();else micSet('ready')}
+ if(my!==sp.run)return;$('#spStep').textContent=T.length>1?`🎤 Đến lượt bạn đọc: câu ${sp.ti+1}/${T.length}`:'🎤 Đến lượt bạn đọc theo';micSet('ready')}
 function spSet(si,ti){sp.si=(si+S.length)%S.length;sp.ti=ti;store.si=sp.si;save();spPlay()}
 function spNext(){sp.ti+1>=S[sp.si].turns.length?spSummary():spSet(sp.si,sp.ti+1)}
 function spSummary(){spHalt();const my=sp.run,T=S[sp.si].turns,sc=T.map((_,i)=>store.best[spKey(sp.si,i)]),a=avg(sc.filter(x=>x!=null)),auto=a>=80&&$('#spGo').checked;
@@ -450,7 +470,7 @@ let mr=null,chunks=[],mineURL=null,micStream=null,recTok=0;
 const stopStream=st=>st.getTracks().forEach(x=>x.stop());
 const micRelease=()=>{recTok++;if(micStream){stopStream(micStream);micStream=null}};
 async function recStart(){micRelease();const tok=recTok;
- try{if(!navigator.mediaDevices||!window.MediaRecorder)return;
+ try{if(isMobile||!navigator.mediaDevices||!window.MediaRecorder)return;   /* iOS/Android: mic chỉ dùng cho 1 việc một lúc — thu âm song song làm nhận giọng nói im lặng hoặc lỗi */
   const st=await navigator.mediaDevices.getUserMedia({audio:true});
   if(tok!==recTok){stopStream(st);return}
   micStream=st;chunks=[];const m=mr=new MediaRecorder(st),mine=chunks;
@@ -464,12 +484,24 @@ function micMsg(c){const perm='🎤 Chưa được cấp quyền micro.<br><smal
  const m={'not-allowed':perm,'service-not-allowed':perm,'audio-capture':'🎤 Không tìm thấy micro. Hãy cắm micro hoặc chọn thiết bị thu âm trong cài đặt hệ thống.','no-speech':'Không nghe thấy giọng nói — bấm 🎤 (hoặc phím Space) để thử lại.','network':'Nhận giọng nói cần kết nối Internet. Hãy kiểm tra mạng rồi thử lại.','language-not-supported':'Trình duyệt chưa hỗ trợ nhận giọng tiếng Trung.'};
  return `<p class="fb no">${m[c]||'Lỗi nhận giọng nói: '+c}</p>`}
 function spListen(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition,res=$('#spRes');
- if(!SR){res.innerHTML='<p class="fb no">Trình duyệt chưa hỗ trợ nhận giọng nói. Hãy mở bằng Chrome, Edge hoặc Safari.</p>';return}
- if(sp.rec)return;const my=sp.run,r=new SR();sp.rec=r;r.lang='zh-CN';r.maxAlternatives=5;r.interimResults=false;
- micSet('rec');res.innerHTML='<p class="mut">Đang nghe… hãy đọc theo</p>';
- r.onresult=e=>my===sp.run&&spScore([...e.results[0]].map(a=>({text:a.transcript,conf:a.confidence})),my);
- r.onerror=e=>{if(my!==sp.run)return;res.innerHTML=micMsg(e.error);micSet('ready')};
- r.onend=()=>{if(sp.rec!==r)return;sp.rec=null;recStop();micSet('ready')};try{r.start();recStart()}catch(e){sp.rec=null;recStop();micSet('ready')}}
+ if(!SR){res.innerHTML='<p class="fb no">Trình duyệt này chưa hỗ trợ nhận giọng nói. '+(inApp?'Bạn đang mở trong ứng dụng khác (Zalo/Facebook/Messenger…) — hãy chọn “Mở bằng trình duyệt” rồi dùng ':'Hãy mở bằng ')+(isIOS?'<b>Safari</b> trên iPhone/iPad (iOS 14.5 trở lên).':isAndroid?'<b>Chrome</b> trên Android.':'Chrome, Edge hoặc Safari.')+'</p>';return}
+ if(sp.rec)return;const my=sp.run;sp.acc=[];sp.stopping=false;
+ micSet('rec');res.innerHTML='<p class="mut">Đang nghe… đọc xong bấm ⏹ để dừng</p>';recStart();
+ /* Android Chrome lặp chữ khi continuous=true → dùng từng lượt ngắn và tự nối lại; iOS/máy tính dùng continuous.
+    Nếu trình duyệt tự ngắt thì nối lại cho đến khi người dùng bấm dừng */
+ const begin=()=>{const r=new SR(),t0=Date.now();sp.rec=r;r.lang='zh-CN';r.maxAlternatives=5;r.continuous=!isAndroid;r.interimResults=false;
+  r.onresult=e=>{if(sp.rec!==r)return;for(let k=e.resultIndex;k<e.results.length;k++)if(e.results[k].isFinal)sp.acc.push([...e.results[k]].map(a=>({text:a.transcript,conf:a.confidence})))};
+  r.onerror=e=>{if(sp.rec!==r||e.error==='no-speech'||e.error==='aborted')return;sp.rec=null;recStop();res.innerHTML=micMsg(e.error);micSet('ready')};
+  r.onend=()=>{if(sp.rec!==r)return;
+   if(!sp.stopping&&Date.now()-t0>400){try{begin();return}catch(err){}}
+   sp.rec=null;recStop();spFinish(my)};
+  try{r.start()}catch(e){sp.rec=null;recStop();micSet('ready')}};
+ begin()}
+function spFinish(my){if(my!==sp.run)return;const res=$('#spRes');
+ if(!sp.acc.length){res.innerHTML=micMsg('no-speech');micSet('ready');return}
+ const alts=[];for(let k=0;k<5;k++){const parts=sp.acc.map(a=>a[k]||a[0]);if(k>0&&!sp.acc.some(a=>a[k]))break;
+  alts.push({text:parts.map(x=>x.text).join(''),conf:parts.reduce((s,x)=>s+(x.conf||0),0)/parts.length})}
+ spScore(alts,my)}
 function spScore(alts,my){const t=spCur(),tg=[...cn(t.zh)];let best=null,heard=alts[0];
  alts.forEach(a=>{const l=lcs(tg,[...cn(a.text)]);if(!best||l.n>best.n){best=l;heard=a}});
  const pct=Math.round(best.n/tg.length*100),need=THRESH(t),ok=pct>=need,go=ok&&$('#spGo').checked,k=spKey(sp.si,sp.ti);
@@ -487,7 +519,8 @@ function spScore(alts,my){const t=spCur(),tg=[...cn(t.zh)];let best=null,heard=a
   <small class="mut">Cao nhất: ${store.best[k]}% · Lần này: ${pct}%</small>`;
  if(go)setTimeout(()=>{if(my===sp.run)spNext()},1800)}
 $('#spPrev').onclick=()=>spSet(sp.si-1,0);$('#spNextSet').onclick=()=>spSet(sp.si+1,0);$('#spSkip').onclick=spNext;
-$('#spListen').onclick=()=>spPlay(true);$('#mic').onclick=()=>{if(sp.rec){micSet('busy');sp.rec.stop();return}spHalt();spListen()};
+$('#spListen').onclick=()=>spPlay(true);$('#mic').onclick=()=>{if(sp.rec){sp.stopping=true;micSet('busy');sp.rec.stop();return}spHalt();spListen()};
+if(isMobile)$('#spMine').style.display='none';
 $('#spHide').onchange=spDraw;$('#spAll').onclick=()=>{sp.heard=-1;spSet(sp.si,0)};
 $('#spChips').onclick=e=>{const b=e.target.closest('button');if(b)spSet(sp.si,+b.dataset.k)};
 $('#spJumpGo').onclick=()=>{const n=+$('#spJump').value;if(n>=1&&n<=S.length)spSet(n-1,0)};
@@ -495,8 +528,10 @@ $('#spSlow').onclick=async()=>{spHalt();await speak(spCur().zh,.5)};
 $('#spMine').onclick=()=>{if(mineURL){spHalt();new Audio(mineURL).play()}};
 new MutationObserver(()=>{const x=$('#spStep'),s=x.textContent;x.className=s.startsWith('🔊')?'l':s.startsWith('🎤')?'r':s.startsWith('✅')?'d':''}).observe($('#spStep'),{childList:true,characterData:true,subtree:true});
 
+function spRelease(){if(sp.hold&&sp.rec){sp.hold=false;sp.stopping=true;micSet('busy');sp.rec.stop()}else sp.hold=false}
+document.addEventListener('keyup',e=>{if(e.key===' ')spRelease()});window.addEventListener('blur',spRelease);
 document.addEventListener('keydown',e=>{if($('#sp').classList.contains('hide')||inField(e)||e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key;
- if(k===' '){e.preventDefault();$('#mic').click()}else if(k==='Enter'||k==='ArrowRight'){e.preventDefault();spNext()}
+ if(k===' '){e.preventDefault();if(e.repeat)return;if($('#mic').classList.contains('busy'))return;if(sp.rec){sp.hold=false;$('#mic').click()}else{spHalt();spListen();sp.hold=!!sp.rec}}else if(k==='Enter'||k==='ArrowRight'){e.preventDefault();spNext()}
  else if(k==='ArrowLeft'){e.preventDefault();if(sp.ti>0)spSet(sp.si,sp.ti-1)}else if(k==='r'||k==='R')spPlay(true)});
 /* ---------- 8. Ôn tập trắc nghiệm ---------- */
 const rv={q:[],i:0,ok:0,wrong:[],ans:false,cur:null,opts:[]};
@@ -543,7 +578,7 @@ const tViews=['rvHome','rvQuiz','rvEnd','tSetup','tRun','tEnd'];
 const tView=id=>{document.body.classList.toggle('testing',id==='tRun');tViews.forEach(x=>$('#'+x).classList.toggle('hide',x!==id));$('#rv .narrow').classList.toggle('wide',id==='tEnd'||id==='rvHome')};
 $('#tScope').innerHTML=Object.entries(TSCOPE).map(([k,[n]])=>`<option value="${k}">${n}</option>`).join('');
 function tSync(){const m=tPool().length,N=$('#tN');$('#tMax').textContent=m;N.max=m;
- if(!(+N.value>0))N.value=Math.min(20,m);else if(+N.value>m)N.value=m}
+ if(!(+N.value>0))N.value=Math.min(20,m);else if(+N.value>m)N.value=m;tTimeInfo()}
 function tOpen(){[...$('#tScope').options].forEach(o=>{o.text=TSCOPE[o.value][0]+' ('+V.filter(TSCOPE[o.value][1]).length+')'});tSync();$('#tMsg').classList.add('hide');tView('tSetup')}
 const tPlain=(o,dir)=>dir==='vi2zh'?o.zh:o.vi;
 const tAns=(o,dir)=>dir==='vi2zh'?`<span class="zh" style="font-size:26px">${o.zh}</span>`+(T.cfg.py?`<br><small class="mut">${o.py}</small>`:''):o.vi;
@@ -560,13 +595,23 @@ function tMake(cfg,words){
    if(k==='mc')q.opts=rvOpts(w,dir);
    if(k==='tf'){q.truth=Math.random()<.5;q.shown=q.truth?w:rvOpts(w,dir).find(o=>o.i!==w.i)}
    qs.push(q)})});
- T.gen++;T.t0=Date.now();T.draft={};window.scrollTo(0,0);T.cfg=cfg;T.qs=qs;T.ans=qs.map(()=>null);T.i=0;T.sel={l:null,r:null};T.flash=null;T.lock=false;tView('tRun');tShow()}
+ T.gen++;T.t0=Date.now();T.limit=cfg.per?n*cfg.per*1000:0;T.draft={};window.scrollTo(0,0);T.cfg=cfg;T.qs=qs;T.ans=qs.map(()=>null);T.i=0;T.sel={l:null,r:null};T.flash=null;T.lock=false;tView('tRun');tShow();tClockStart()}
+/* đếm ngược: tính theo giờ thực (deadline) nên không bị lệch khi tab ở chế độ nền; hết giờ tự nộp bài */
+let tTick;const tClockStop=()=>{clearInterval(tTick);tTick=null};
+const tDur=t=>{const m=Math.floor(t/60),r=t%60;return(m?m+' phút':'')+(m&&r?' ':'')+(r||!m?r+' giây':'')};
+function tTimeInfo(){const per=+$('#tTime').value,n=+$('#tN').value||0;$('#tTimeInfo').textContent=per?(n?'Tổng cộng '+tDur(n*per):'Tính theo số câu'):'Không đếm ngược'}
+function tClockStart(){tClockStop();const c=$('#tClock');if(!T.limit){c.classList.add('hide');return}
+ c.classList.remove('hide');const end=Date.now()+T.limit,g=T.gen,warn=Math.min(60,Math.max(10,Math.round(T.limit/1000*.15)));
+ const upd=()=>{if(g!==T.gen)return tClockStop();const left=Math.max(0,Math.ceil((end-Date.now())/1000));
+  c.textContent='⏱ '+String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');c.classList.toggle('warn',left<=warn);
+  if(left<=0){tClockStop();toast('⏰ Hết giờ! Bài kiểm tra đã được nộp tự động.');tFinish()}};
+ upd();tTick=setInterval(upd,250)}
 function tStart(){const m=tPool().length,msg=$('#tMsg'),types=TT.filter(x=>$(x[2]).checked).map(x=>x[0]);
  const fail=s=>{msg.textContent=s;msg.classList.remove('hide')};
  if(!types.length)return fail('Hãy bật ít nhất một dạng câu hỏi.');
  if(m<2)return fail('Phạm vi này có ít hơn 2 từ — hãy chọn phạm vi khác.');
  const n=Math.max(1,Math.min(m,parseInt($('#tN').value,10)||Math.min(20,m)));$('#tN').value=n;
- tMake({scope:$('#tScope').value,n,ans:$('#tAns').value,types,py:$('#tPy').checked,lapse:$('#tLapse').checked})}
+ tMake({scope:$('#tScope').value,n,per:+$('#tTime').value||0,ans:$('#tAns').value,types,py:$('#tPy').checked,lapse:$('#tLapse').checked})}
 function tShow(){const q=T.qs[T.i];if(!q)return tFinish();T.lock=false;
  const a=T.ans[T.i],dir=q.dir,name=TT.find(x=>x[0]===q.type)[1];
  $('#tBar').style.width=T.i/T.qs.length*100+'%';$('#tCnt').textContent=`${T.i+1}/${T.qs.length}`;
@@ -607,7 +652,7 @@ function tReview(q,a,i,units){const dir=q.dir,bad=units.filter(u=>!u.ok).length,
  else if(q.type==='write')body=tPrompt(q.w,dir)+`<div class="fbt ${fb[1]}">${fb[0]}</div><div class="rlist">`+(a&&a.text?ro('Bạn viết: <b>'+esc(a.text)+'</b>',all?'ok':'bad'):'')+(all?'':ro('Đáp án: '+(dir==='zh2vi'?q.w.vi:`<span class="zh">${q.w.zh}</span> · ${q.w.py}`),'miss'))+'</div>';
  else body=`<div class="fbt ${fb[1]}">${fb[0]}</div><div class="rlist">`+units.map(u=>ro(`<span class="zh">${u.w.zh}</span> <small class="mut">${u.w.py}</small> ↔ ${u.w.vi}`,u.ok?'ok':'bad')).join('')+'</div>';
  return `<div class="tq" id="tq${i}"><div class="hd"><span><b>${name}</b>${q.type!=='match'&&dir==='zh2vi'?` <button data-say="${i}" aria-label="Nghe" style="padding:2px 8px">🔊</button>`:''}</span><span>${i+1}/${T.qs.length}</span></div>${body}</div>`}
-function tFinish(){T.gen++;quitReset();const res=T.qs.map((q,i)=>({q,a:T.ans[i],u:tGrade(q,T.ans[i])})),rows=[];
+function tFinish(){tClockStop();T.gen++;quitReset();const res=T.qs.map((q,i)=>({q,a:T.ans[i],u:tGrade(q,T.ans[i])})),rows=[];
  res.forEach(r=>r.u.forEach(x=>rows.push({...x,type:r.q.type})));
  const n=rows.length,ok=rows.filter(r=>r.ok).length,p=Math.round(ok/n*100),bad=rows.filter(r=>!r.ok),sec=Math.max(1,Math.round((Date.now()-T.t0)/1000));
  T.rows=rows;T.customIds=[...new Set(bad.map(r=>r.w.i))];
@@ -624,7 +669,7 @@ function tFinish(){T.gen++;quitReset();const res=T.qs.map((q,i)=>({q,a:T.ans[i],
  <div class="tans"><h3>Đáp án của bạn</h3>${res.map((r,i)=>tReview(r.q,r.a,i,r.u)).join('')}</div></div></div>`;
  tView('tEnd');window.scrollTo(0,0)}
 $('#tOpen').onclick=tOpen;$('#tScope').onchange=tSync;$('#tCancel').onclick=rvHome;$('#tStart').onclick=tStart;
-$('#tN').onchange=tSync;
+$('#tN').onchange=tSync;$('#tN').oninput=tTimeInfo;$('#tTime').onchange=tTimeInfo;
 $('#tBody').onclick=e=>{const b=e.target.closest('button');if(!b||T.lock)return;const q=T.qs[T.i];
  if(b.id==='tSub')return tSubmit();if(q.type==='match'){if(b.dataset.s)tMatchClick(b);return}if(b.dataset.k!=null)tAnswer({k:+b.dataset.k})};
 /* Enter gửi đáp án — nhưng không khi đang gõ dở bằng bộ gõ tiếng Trung/Việt (isComposing) */
@@ -648,7 +693,7 @@ document.addEventListener('keydown',e=>{if($('#tRun').classList.contains('hide')
  if(e.key==='ArrowLeft'){$('#tPrev').click();return}
  if(q.type==='mc'||q.type==='tf'){const b=$$('#tBody .opt')[+e.key-1];if(b&&e.key.length===1)b.click()}});
 /* ---------- 9. Ghi nhớ tuỳ chọn ---------- */
-const PREFS=['tScope','tAns','tN','tTF','tMC','tMatch','tWrite','tPy','tLapse','rate','fcGroup','fcFilter','fcSide','fcShuf','fcAuto','fcPyF','qDir','spAuto','spGo','spHide','rvScope','rvDir','rvN'];
+const PREFS=['tScope','tAns','tN','tTime','tTF','tMC','tMatch','tWrite','tPy','tLapse','rate','fcGroup','fcFilter','fcSide','fcShuf','fcAuto','fcPyF','qDir','spGo','spHide','rvScope','rvDir','rvN'];
 PREFS.forEach(id=>{const el=$('#'+id),v=store.pref[id];if(v==null)return;
  if(el.type==='checkbox')el.checked=!!v;else if(el.type==='range'||el.type==='number'||[...(el.options||[])].some(o=>o.value===v))el.value=v});
 PREFS.forEach(id=>$('#'+id).addEventListener('change',e=>{if(e.target.value==='custom')return;store.pref[id]=e.target.type==='checkbox'?e.target.checked:e.target.value;save()}));
